@@ -70,6 +70,12 @@ charge_df.insert(0, 'Billing_period', str(start.year) + '-' + str(start.month))
 outsheet = sh.worksheet("FY25_monthly_totals")
 outsheet.append_rows( charge_df.values.tolist(), table_range="A1:G1")
 
+simple = pd.pivot_table(charge_df, values='Charges', index=['Lab'], aggfunc="sum").reset_index()
+simple.insert(0, 'Billing_period', str(start.year) + '-' + str(start.month))
+
+outsheet = sh.worksheet("FY25_monthly_bill")
+outsheet.append_rows( simple.values.tolist(), table_range="A1:C1")
+
 
 
 

@@ -17,6 +17,20 @@ import gspread
 import pandas as pd
 #import datetime
 from datetime import date
+from datetime import datetime
+from itertools import compress
+
+#######################################################################################
+
+def get_archive(l, m):
+	'''
+	From a nested list (all_values), where the third entry is the order date,
+	filter for entries from month m
+	'''
+	o = list( compress(l,
+		 	[ datetime.strptime(x[3], '%m/%d/%Y').month == m for x in l ] ) )
+	return o
+
 
 #######################################################################################
 
@@ -67,7 +81,7 @@ charge_df.insert(0, 'Billing_period', str(start.year) + '-' + str(start.month))
 
 #######################################################################################
 # Write output
-outsheet = sh.worksheet("FY25_monthly_totals")
+outsheet = sh.worksheet("FY25_monthly_itemized")
 outsheet.append_rows( charge_df.values.tolist(), table_range="A1:G1")
 
 simple = pd.pivot_table(charge_df, values='Charges', index=['Lab'], aggfunc="sum").reset_index()
@@ -76,9 +90,11 @@ simple.insert(0, 'Billing_period', str(start.year) + '-' + str(start.month))
 outsheet = sh.worksheet("FY25_monthly_bill")
 outsheet.append_rows( simple.values.tolist(), table_range="A1:C1")
 
+# Write billed entries to archive
+outsheet = sh.worksheet("FY25-archive")
+outsheet.append_rows( get_archive( all_val[1:], start.month), table_range="A1:H1")
 
-
-
+# next remove billed rows
 
 
 

@@ -50,7 +50,7 @@ all_val   = wsh.get_all_values()
 header          = ['Timestamp', 'Email', 'Lab', 'Date', 'Container', 'Material', 'Number', 'Special']
 df              = pd.DataFrame(all_val[1:], columns=header)
 df['Date']      = pd.to_datetime( df['Date'] )
-df['Number']    = df['Number'].astype(int)
+df['Number']    = df['Number'].astype(float)
 df['Container'] = df.Container.str.split(' ').str[0]
 df['Special']   = df.Special.str.split(' ').str[0]
 
@@ -63,8 +63,11 @@ plastic_vial = 0.8
 empty_vial   = 0.5
 
 rate_table = [ ['Container', 'Material','Special', 'Price'], 
-['Bottles', 'Plastic', '', rate], ['Bottles', 'Glass', '', rate],
-['Vials', 'Plastic', 'Unplugged', rate*plastic_vial], ['Vials', 'Glass', '',rate],
+['Bottles', 'Plastic', '', rate], 
+['Bottles', 'Glass', '', rate],
+['Vials', 'Plastic', '', rate*plastic_vial], 
+['Vials', 'Plastic', 'Unplugged', rate*plastic_vial], 
+['Vials', 'Glass', '',rate],
 ['Vials', 'Glass', 'Empty', rate*empty_vial] ]
 
 rate_df = pd.DataFrame(rate_table[1:], columns=rate_table[0])

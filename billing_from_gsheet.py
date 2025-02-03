@@ -61,6 +61,7 @@ now        = df[(df['Date'] > start) & (df['Date'] < stop)]
 rate         = 25
 plastic_vial = 0.8
 empty_vial   = 0.5
+half_food    = 0.96
 
 rate_table = [ ['Container', 'Material','Special', 'Price'], 
 ['Bottles', 'Plastic', '', rate], 
@@ -68,6 +69,7 @@ rate_table = [ ['Container', 'Material','Special', 'Price'],
 ['Vials', 'Plastic', '', rate*plastic_vial], 
 ['Vials', 'Plastic', 'Unplugged', rate*plastic_vial], 
 ['Vials', 'Glass', '',rate],
+['Vials', 'Glass', 'Half',rate*half_food],
 ['Vials', 'Glass', 'Empty', rate*empty_vial] ]
 
 rate_df = pd.DataFrame(rate_table[1:], columns=rate_table[0])

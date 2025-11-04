@@ -58,7 +58,7 @@ df['Number']    = df['Number'].astype(float)
 df['Container'] = df.Container.str.split(' ').str[0]
 df['Special']   = df.Special.str.split(' ').str[0]
 
-now        = df[(df['Date'] > start) & (df['Date'] < stop)]
+now        = df[(df['Date'] >= start) & (df['Date'] < stop)]
 
 #######################################################################################
 # Rate and proportional rates for plastic/empty

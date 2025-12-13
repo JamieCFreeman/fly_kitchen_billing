@@ -10,8 +10,12 @@
 
 #######################################################################################
 
-# Path to credential .json file
+# Path to credential .json file, needed to authorize sheet access
 cred_file = '/home/jamie/fly-kitchen-billing-e82a4be570b3.json'
+# Google sheet name
+order_sheet_name = "Fly Kitchen Ordering (Responses)"
+# Name of worksheet with billing form data
+form_response_sheet = "Form Responses 1"
 # Name of worksheet to write billed orders to for archive
 archive_sheet = "FY26_monthly_itemized" 
 
@@ -35,7 +39,6 @@ def get_archive(l, m):
 		 	[ datetime.strptime(x[3], '%m/%d/%Y').month == m for x in l ] ) )
 	return o
 
-
 #######################################################################################
 
 # What is the date? Normally want to run at beginning of month to bill month before
@@ -45,19 +48,21 @@ start     = stop - pd.DateOffset(months=1)
 
 # Authenticate for API, open sheet, and get worksheet data
 gc        = gspread.service_account(filename=cred_file)
-sh        = gc.open("Fly Kitchen Ordering (Responses)")
-wsh       = sh.get_worksheet(0)
+sh        = gc.open(order_sheet_name)
+wsh       = sh.worksheet(form_response_sheet)
 all_val   = wsh.get_all_values()
 
 # Reformat as Pandas df, third column is delivery date, change to datetime format,
-#	
+# Simplify header	
 header          = ['Timestamp', 'Email', 'Lab', 'Date', 'Container', 'Material', 'Number', 'Special']
 df              = pd.DataFrame(all_val[1:], columns=header)
 df['Date']      = pd.to_datetime( df['Date'] )
 df['Number']    = df['Number'].astype(float)
+# Container has description, remove
 df['Container'] = df.Container.str.split(' ').str[0]
 df['Special']   = df.Special.str.split(' ').str[0]
 
+# Get all entries we are billing for now
 now        = df[(df['Date'] >= start) & (df['Date'] < stop)]
 
 #######################################################################################

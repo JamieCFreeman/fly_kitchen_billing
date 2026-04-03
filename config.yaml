@@ -1,0 +1,20 @@
+# Configuration for Fly Kitchen Billing System
+
+# Google Sheets credentials
+credentials:
+  file_path: "/home/jamie/fly-kitchen-billing-e82a4be570b3.json"
+
+# Google Sheets configuration
+sheets:
+  order_sheet_name: "Fly Kitchen Ordering (Responses)"
+  form_response_sheet: "Form Responses 1"
+  archive_sheet: "FY26_archive"
+  itemized_sheet: "FY26_monthly_itemized"
+  credit_sheet: "Credit"
+
+# Pricing rates
+rates:
+  base_rate: 25
+  plastic_vial_multiplier: 0.8
+  empty_vial_multiplier: 0.5
+  half_food_multiplier: 0.96

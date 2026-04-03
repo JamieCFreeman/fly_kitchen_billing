@@ -36,7 +36,12 @@ def generate_invoices(charge_df: pd.DataFrame, output_dir: str = 'invoices', iss
     if missing:
         raise ValueError(f'Input DataFrame is missing required columns: {sorted(missing)}')
 
-    output_path = Path(output_dir)
+    # Determine the overall billing period range
+    min_period = charge_df['Billing_period'].min()
+    max_period = charge_df['Billing_period'].max()
+    period_str = f"{min_period}-{max_period}" if min_period != max_period else str(min_period)
+
+    output_path = Path(output_dir) / period_str
     output_path.mkdir(parents=True, exist_ok=True)
 
     styles = getSampleStyleSheet()
@@ -44,12 +49,19 @@ def generate_invoices(charge_df: pd.DataFrame, output_dir: str = 'invoices', iss
     style_n = styles['Normal']
 
     for lab, group in charge_df.groupby('Lab'):
-        billing_period = str(group['Billing_period'].iat[0])
+        # Use the numeric min-max billing period to show a full span in the invoice header
+        min_period = group['Billing_period'].min()
+        max_period = group['Billing_period'].max()
+        billing_period = f"{min_period}-{max_period}" if min_period != max_period else str(min_period)
+
         total_due = group['Charges'].sum()
 
         safe_lab = normalize_filename(str(lab)) or 'unknown_lab'
         safe_period = normalize_filename(billing_period)
-        filename = f'invoice_{safe_lab}_{safe_period}.pdf'
+
+        # Unique stable filename with period and generation timestamp
+        timestamp = pd.Timestamp.utcnow().strftime('%Y%m%dT%H%M%SZ')
+        filename = f'{safe_lab}_{safe_period}_{timestamp}.pdf'
         dest_file = output_path / filename
 
         doc = SimpleDocTemplate(str(dest_file), pagesize=letter,
@@ -65,11 +77,12 @@ def generate_invoices(charge_df: pd.DataFrame, output_dir: str = 'invoices', iss
         story.append(Spacer(1, 0.2*inch))
 
         data = [[
-            'Container', 'Material', 'Special', 'Count', 'Unit Price', 'Charges'
+            'Month', 'Container', 'Material', 'Special', 'Count', 'Unit Price', 'Charges'
         ]]
 
-        for _, row in group.sort_values(['Container', 'Material', 'Special']).iterrows():
+        for _, row in group.sort_values(['Billing_period', 'Container', 'Material', 'Special']).iterrows():
             data.append([
+                row['Billing_period'],
                 row['Container'],
                 row['Material'],
                 row['Special'] if pd.notna(row['Special']) and str(row['Special']).strip() else '-',
@@ -83,9 +96,9 @@ def generate_invoices(charge_df: pd.DataFrame, output_dir: str = 'invoices', iss
         total_label = Paragraph('Total', bold_style)
         total_value = Paragraph(f'${total_due:.2f}', bold_style)
 
-        data.append(['', '', '', '', total_label, total_value])
+        data.append(['', total_label, '', '', '', '', total_value])
 
-        table = Table(data, colWidths=[1.2*inch, 1.2*inch, 1.2*inch, 0.9*inch, 1.0*inch, 1.1*inch])
+        table = Table(data, colWidths=[0.8*inch, 1.1*inch, 1.1*inch, 1.1*inch, 0.8*inch, 0.9*inch, 1.0*inch])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4f81bd')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
